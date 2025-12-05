@@ -19,8 +19,7 @@ int main()
     int *vettore;
     int *buffer;
 
-    vett_id = /* TBD: usare shmget() per creare un vettore di interi su
-               *      memoria condivisa, di lunghezza pari a NUM_ELEMENTI */
+    vett_id = shmget(IPC_PRIVATE, sizeof(int) * NUM_ELEMENTI, IPC_CREAT | 0644);
 
     if (vett_id < 0)
     {
@@ -28,7 +27,6 @@ int main()
         exit(1);
     }
 
-    vettore = /* TBD: usare shmat() per ottenere un puntatore */
 
     if (vettore == (void *)-1)
     {
@@ -48,8 +46,7 @@ int main()
         //printf("%d\n", vettore[i]); // per debugging
     }
 
-    buffer_id = /* TBD: usare shmget() per creare un buffer singolo su
-                 *      memoria condivisa, con un intero */
+    buffer_id = shmget(IPC_PRIVATE, sizeof(int), IPC_CREAT | 0644);
 
     if (buffer_id < 0)
     {
@@ -57,7 +54,7 @@ int main()
         exit(1);
     }
 
-    buffer = /* TBD: usare shmat() per ottenere un puntatore */
+    buffer = shmat(buffer_id, NULL, 0);
 
     if (buffer == (void *)-1)
     {
@@ -80,14 +77,39 @@ int main()
 
     /* Avvio dei processi figli */
 
-    /* TBD: creare 10 processi figli, ognuno dei quali dovrà eseguire
-     *      la funzione "figlio()". Alla funzione, passare come parametri:
-     *      - il puntatore al vettore
-     *      - il puntatore al buffer singolo
-     *      - l'ID del vettore di semafori
-     *      - l'indice del primo elemento da elaborare
-     *      - il numero di elementi da elaborare (1000)
-     */
+    pid_t pid;
+
+    for (int i = 0; i < 10; i++)
+    {
+
+        pid = fork();
+
+        if (pid == 0)
+        {
+            /* Processo figlio */
+
+            /* NUM_ELEMENTI/NUM_PROCESSI = 1000
+             * i=0: 0...999
+             * i=1: 1000...1999
+             * i=2: 2000...2999
+             * ...
+             * i=9: 9000...9999
+             */
+            figlio(vettore,
+                    buffer,
+                    sem_id,
+                    i * (NUM_ELEMENTI / NUM_PROCESSI),
+                    NUM_ELEMENTI / NUM_PROCESSI);
+
+            exit(0);
+        }
+
+        else if (pid < 0)
+        {
+            perror("Impossibile avviare processo figlio");
+            exit(1);
+        }
+    }
 
 
     /* Processo padre */

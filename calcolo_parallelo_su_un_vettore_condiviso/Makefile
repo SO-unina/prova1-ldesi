@@ -1,3 +1,5 @@
+all: minimo-mutua-esclusione minimo-prod-cons
+
 minimo-mutua-esclusione: main.o processi-mutua-esclusione.o semafori.o
 	gcc -o minimo-mutua-esclusione  main.o processi-mutua-esclusione.o semafori.o
 
@@ -20,4 +22,3 @@ clean:
 	rm -f *.o
 	rm -f minimo-mutua-esclusione
 	rm -f minimo-prod-cons
-
